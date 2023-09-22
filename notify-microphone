@@ -1,0 +1,29 @@
+#!/bin/sh
+# Microphone notification program for PulseAudio.
+
+APPLICATION="notify-microphone"
+ICON_LOW="microphone-sensitivity-low-symbolic"
+ICON_MID="microphone-sensitivity-medium-symbolic"
+ICON_HIGH="microphone-sensitivity-high-symbolic"
+ICON_MUTED="microphone-sensitivity-muted-symbolic"
+TMP_NID="/tmp/${APPLICATION}-id"
+
+VOLUME=$(pamixer --default-source --get-volume)
+MUTED=$(pamixer --default-source --get-mute)
+if [[ $MUTED == "true" ]]; then
+	ICON=$ICON_MUTED
+elif [[ $VOLUME -le 33 ]]; then
+	ICON=$ICON_LOW
+elif [[ $VOLUME -le 66 ]]; then
+	ICON=$ICON_MID
+else
+	ICON=$ICON_HIGH
+fi
+
+NID=$(cat $TMP_NID)
+if [[ $NID == "" ]]; then
+	echo 0 > $TMP_NID; NID=0
+fi
+
+NID=$(/usr/bin/notify-send $APPLICATION -i $ICON -h int:value:$VOLUME -r $NID -p)
+echo $NID > $TMP_NID

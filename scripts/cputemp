@@ -1,0 +1,16 @@
+#!/bin/bash
+#echo $(($(cat /sys/class/thermal/thermal_zone0/temp) / 1000))
+ sensors | awk '/Package/ {sub(/^\+/, "", $4); sub(/\.0/, "", $4);print $4}'
+
+ for i in /sys/class/hwmon/hwmon*/temp*_input;
+ do
+ 	echo "$(<$(dirname $i)/name): $(cat ${i%_*}_label 2>/dev/null ||
+ 		echo $(basename ${i%_*})) $(readlink -f $i)" |
+ 		grep "id 0" |
+ 		awk ' { print $5; } ' ;
+ done 
+
+# Get information from cores temp thanks to sensors
+ rawData=$( sensors | awk '/^Tctl:/ {print $2}'
+ rawData=$( sensors | grep -m 1 Core | awk '{print substr($3, 2, length($3)-5)}' )
+ tempCore=($rawData)
